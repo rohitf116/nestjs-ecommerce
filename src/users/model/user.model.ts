@@ -5,6 +5,8 @@ import * as bcrypt from "bcrypt";
 import { Address } from "../interface/address.interface";
 import { AddressDto } from "../dto/create-address.dto";
 
+export type UserDocument = HydratedDocument<User>;
+
 @Schema({ timestamps: true })
 export class User {
   @Prop()
@@ -15,6 +17,9 @@ export class User {
 
   @Prop({ unique: true })
   email: string;
+
+  @Prop({ default: false })
+  isVerifed: boolean;
 
   @Prop()
   profileImage: string;
@@ -31,3 +36,12 @@ export class User {
     billing: AddressDto;
   };
 }
+export const UserModel = SchemaFactory.createForClass(User);
+
+UserModel.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    // this.tokenVersion += 1;
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+  next();
+});

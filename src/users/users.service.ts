@@ -1,20 +1,51 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { ConflictException, Injectable } from "@nestjs/common";
+import { Model, Connection, Types } from "mongoose";
+import { InjectModel, InjectConnection } from "@nestjs/mongoose";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { User } from "./model/user.model";
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectConnection() private connection: Connection
+  ) {}
+  async create(createUserDto: CreateUserDto) {
+    // const user
+    await this.findOneByEmail(createUserDto.email);
+    await this.findOneByPhone(createUserDto.phone);
+    const user = new this.userModel(createUserDto);
+    const newUser = await user.save();
+    return newUser;
+  }
+
+  async isEmailExist(email: string): Promise<boolean> {
+    const user = await this.userModel.findOne({ email });
+    return true;
   }
 
   findAll() {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOneByEmail(email: string) {
+    const user = await this.userModel.findOne({ email }).exec();
+    if (user) {
+      throw new ConflictException("Email already in use");
+    }
+    return true;
   }
+
+  async findOneByPhone(phone: number) {
+    const user = await this.userModel.findOne({ phone }).exec();
+    if (user) {
+      throw new ConflictException("Phone already in use");
+    }
+    return true;
+  }
+
+  findOne(id: string) {}
 
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
