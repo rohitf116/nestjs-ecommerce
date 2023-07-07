@@ -10,8 +10,10 @@ import {
 import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { SerializeInterceptor } from "src/interceptors/serialize.interceptor";
 
 @Controller("users")
+@UseInterceptor(new SerializeInterceptor())
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -40,4 +42,9 @@ export class UsersController {
   remove(@Param("id") id: string) {
     return this.usersService.remove(+id);
   }
+}
+function UseInterceptor(
+  arg0: SerializeInterceptor
+): (target: typeof UsersController) => void | typeof UsersController {
+  throw new Error("Function not implemented.");
 }

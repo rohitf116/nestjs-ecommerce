@@ -4,6 +4,10 @@ import { HydratedDocument } from "mongoose";
 import * as bcrypt from "bcrypt";
 import { Address } from "../interface/address.interface";
 import { AddressDto } from "../dto/create-address.dto";
+import { OTP } from "../interface/otp.interface";
+import { Communication } from "../interface/communication.interface";
+import { OTPDto } from "../dto/otp.dto";
+import { CommunicationDto } from "../dto/communication.dto";
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -15,17 +19,20 @@ export class User {
   @Prop()
   lname: string;
 
-  @Prop({ unique: true })
-  email: string;
+  @Prop({ type: CommunicationDto })
+  email: CommunicationDto;
 
-  @Prop({ default: false })
-  isVerifed: boolean;
+  @Prop({ type: OTPDto })
+  otp: {
+    email: OTP;
+    phone: OTP;
+  };
 
   @Prop()
   profileImage: string;
 
-  @Prop({ unique: true })
-  phone: number;
+  @Prop({ type: CommunicationDto })
+  phone: CommunicationDto;
 
   @Prop()
   password: string;
