@@ -13,7 +13,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { SerializeInterceptor } from "src/interceptors/serialize.interceptor";
 
 @Controller("users")
-@UseInterceptor(new SerializeInterceptor())
+// @UseInterceptor(new SerializeInterceptor())
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -43,8 +43,14 @@ export class UsersController {
     return this.usersService.remove(+id);
   }
 }
+
 function UseInterceptor(
   arg0: SerializeInterceptor
 ): (target: typeof UsersController) => void | typeof UsersController {
   throw new Error("Function not implemented.");
 }
+// function UseInterceptor(
+//   arg0: SerializeInterceptor
+// ): (target: typeof UsersController) => void | typeof UsersController {
+//   throw new Error("Function not implemented.");
+// }

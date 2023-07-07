@@ -7,7 +7,10 @@ import { AddressDto } from "../dto/create-address.dto";
 import { OTP } from "../interface/otp.interface";
 import { Communication } from "../interface/communication.interface";
 import { OTPDto } from "../dto/otp.dto";
-import { CommunicationDto } from "../dto/communication.dto";
+import {
+  CommunicationDtoEmail,
+  CommunicationDtoPhone,
+} from "../dto/communication.dto";
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -19,20 +22,17 @@ export class User {
   @Prop()
   lname: string;
 
-  @Prop({ type: CommunicationDto })
-  email: CommunicationDto;
+  @Prop({ type: CommunicationDtoEmail })
+  email: CommunicationDtoEmail;
 
   @Prop({ type: OTPDto })
-  otp: {
-    email: OTP;
-    phone: OTP;
-  };
+  otp: OTPDto;
 
   @Prop()
   profileImage: string;
 
-  @Prop({ type: CommunicationDto })
-  phone: CommunicationDto;
+  @Prop({ type: CommunicationDtoPhone })
+  phone: CommunicationDtoPhone;
 
   @Prop()
   password: string;
