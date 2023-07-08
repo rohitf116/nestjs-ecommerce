@@ -10,13 +10,15 @@ import {
 } from "./dto/communication.dto";
 import { OtpService } from "./otp.service";
 import { OTP } from "./interface/otp.interface";
+import { EmailService } from "src/email/email.service";
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectConnection() private connection: Connection,
-    private otpServise: OtpService
+    private otpServise: OtpService,
+    private emailService: EmailService //
   ) {}
   async create(createUserDto: CreateUserDto) {
     // const user
@@ -30,18 +32,21 @@ export class UsersService {
       value: createUserDto.phone,
       isVerfied: false,
     };
-    const otp = this.otpEmail();
+    const otp = this.otpEmailGenerate();
+    this.emailService.registrationMail(email.value, otp.value);
     const user = new this.userModel({ ...createUserDto, email, phone, otp });
     const newUser = await user.save();
     return newUser;
   }
 
-  otpEmail() {
+  otpEmailGenerate() {
     const emailOtp = this.otpServise.generateOtp();
     const emailExpiry = this.otpServise.generateExpiry();
     const otp: OTP = { value: emailOtp, expiry: emailExpiry };
     return otp;
   }
+
+  async sendMail(email: string, subject: string, body: string): Promise<void> {}
 
   async isEmailExist(email: string): Promise<boolean> {
     const user = await this.userModel.findOne({ "email.value": email });
