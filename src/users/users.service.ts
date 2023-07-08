@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { Model, Connection, Types } from "mongoose";
 import { InjectModel, InjectConnection } from "@nestjs/mongoose";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -48,9 +53,30 @@ export class UsersService {
 
   async sendMail(email: string, subject: string, body: string): Promise<void> {}
 
-  async isEmailExist(email: string): Promise<boolean> {
+  async isEmailExist(email: string) {
     const user = await this.userModel.findOne({ "email.value": email });
-    return true;
+    return user;
+  }
+  async verifyEmailOtp(email: string, otp: number) {
+    const user = await this.isEmailExist(email);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    if (user.email.isVerfied) {
+      throw new BadRequestException("User already verified");
+    }
+    this.emailService.verifyEmailWithOtp(otp, user);
+    const newUser = this.resetOtpToNull(user);
+    Object.assign(user, newUser);
+    await user.save();
+    return "email verified successfully";
+  }
+
+  resetOtpToNull(user: User) {
+    const otp: OTP = { value: null, expiry: null };
+    user.email.isVerfied = true;
+    user.otp = otp;
+    return user;
   }
 
   findAll() {
