@@ -22,8 +22,8 @@ export class User {
   @Prop()
   lname: string;
 
-  @Prop({ type: CommunicationDtoEmail })
-  email: CommunicationDtoEmail;
+  @Prop()
+  email: string;
 
   @Prop({ type: OTPDto })
   otp: OTPDto;
@@ -31,11 +31,20 @@ export class User {
   @Prop()
   profileImage: string;
 
-  @Prop({ type: CommunicationDtoPhone })
-  phone: CommunicationDtoPhone;
+  @Prop()
+  phone: number;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 
   @Prop()
   password: string;
+
+  @Prop({ default: false })
+  isAdmin: boolean;
+
+  @Prop({ default: 1 })
+  tokenVersion: number;
 
   @Prop({ type: AddressDto })
   address: {
@@ -47,8 +56,8 @@ export const UserModel = SchemaFactory.createForClass(User);
 
 UserModel.pre("save", async function (next) {
   if (this.isModified("password")) {
-    // this.tokenVersion += 1;
-    this.password = await bcrypt.hash(this.password, 10);
+    this.tokenVersion += 1;
+    this.password = await bcrypt.hash(this.password, 12);
   }
   next();
 });

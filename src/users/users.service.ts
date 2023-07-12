@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import * as bcrypt from "bcrypt";
 import { Model, Connection, Types } from "mongoose";
 import { InjectModel, InjectConnection } from "@nestjs/mongoose";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -16,6 +17,7 @@ import {
 import { OtpService } from "./otp.service";
 import { OTP } from "./interface/otp.interface";
 import { EmailService } from "src/email/email.service";
+import { LoginDto } from "./dto/login.dto";
 
 @Injectable()
 export class UsersService {
@@ -29,21 +31,23 @@ export class UsersService {
     // const user
     await this.findOneByEmail(createUserDto.email);
     await this.findOneByPhone(createUserDto.phone);
-    const email: CommunicationDtoEmail = {
-      value: createUserDto.email,
-      isVerfied: false,
-    };
-    const phone: CommunicationDtoPhone = {
-      value: createUserDto.phone,
-      isVerfied: false,
-    };
+
     const otp = this.otpEmailGenerate();
-    this.emailService.registrationMail(email.value, otp.value);
-    const user = new this.userModel({ ...createUserDto, email, phone, otp });
+    this.emailService.registrationMail(createUserDto.email, otp.value);
+    const user = new this.userModel({ ...createUserDto, otp });
     const newUser = await user.save();
     return newUser;
   }
 
+  async login(loginDto: LoginDto) {
+    const user: User = await this.isEmailExist(loginDto.email);
+    if (user) {
+      const isMatch = await bcrypt.compare(loginDto.password, user.password);
+      if (isMatch) {
+        return user;
+      }
+    }
+  }
   otpEmailGenerate() {
     const emailOtp = this.otpServise.generateOtp();
     const emailExpiry = this.otpServise.generateExpiry();
@@ -51,18 +55,17 @@ export class UsersService {
     return otp;
   }
 
-  async sendMail(email: string, subject: string, body: string): Promise<void> {}
-
   async isEmailExist(email: string) {
     const user = await this.userModel.findOne({ "email.value": email });
     return user;
   }
+  //
   async verifyEmailOtp(email: string, otp: number) {
     const user = await this.isEmailExist(email);
     if (!user) {
       throw new NotFoundException("User not found");
     }
-    if (user.email.isVerfied) {
+    if (user.isVerified) {
       throw new BadRequestException("User already verified");
     }
     this.emailService.verifyEmailWithOtp(otp, user);
@@ -74,7 +77,7 @@ export class UsersService {
 
   resetOtpToNull(user: User) {
     const otp: OTP = { value: null, expiry: null };
-    user.email.isVerfied = true;
+    user.isVerified = true;
     user.otp = otp;
     return user;
   }
