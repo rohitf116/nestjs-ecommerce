@@ -16,6 +16,7 @@ import { OtpService } from "./otp.service";
 import { OTP } from "./interface/otp.interface";
 import { EmailService } from "src/email/email.service";
 import { LoginDto } from "./dto/login.dto";
+import { Address } from "./interface/address.interface";
 
 @Injectable()
 export class UsersService {
@@ -41,7 +42,7 @@ export class UsersService {
     const user: User = await this.isEmailExist(loginDto.email);
     if (user) {
       const isMatch = await bcrypt.compare(loginDto.password, user.password);
-      console.log(user);
+
       if (isMatch) {
         return user;
       }
@@ -60,10 +61,9 @@ export class UsersService {
     return user;
   }
   //
-  async verifyEmailOtp(email: string, otp: number) {
-    console.log(email);
+  async verifyEmailOtp(email: string, otp: number, res: any) {
     const user = await this.isEmailExist(email);
-    console.log(user, "iiii");
+
     if (!user) {
       throw new NotFoundException("User not found");
     }
@@ -74,7 +74,7 @@ export class UsersService {
     const newUser = this.resetOtpToNull(user);
     Object.assign(user, newUser);
     await user.save();
-    return { message: "email verified successfully" };
+    res.send({ message: "email verified successfully" });
   }
 
   resetOtpToNull(user: User) {
@@ -82,6 +82,16 @@ export class UsersService {
     user.isVerified = true;
     user.otp = otp;
     return user;
+  }
+  async resendOtp(email: string, res: any) {
+    const user = await this.userModel.findOne({ email: email }).exec();
+    if (user) {
+      const otp = this.otpEmailGenerate();
+      this.emailService.resendOtpMail(email, otp.value);
+      user.otp = otp;
+      await user.save();
+    }
+    res.send({ message: "if email exist then you will reciev email" });
   }
 
   findAll() {
@@ -107,12 +117,27 @@ export class UsersService {
   findOne(id: Types.ObjectId) {
     return this.userModel.findOne({ _id: id }).exec();
   }
+  updateAddress(user: User, addressNew: any) {
+    const { address } = user;
 
-  update(id: Types.ObjectId, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    const updatedAddress = {
+      shipping: { ...address?.shipping, ...addressNew?.shipping },
+      billing: { ...address?.billing, ...addressNew?.billing },
+    };
+    return updatedAddress;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async update(id: Types.ObjectId, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
+    const resulAddres = this.updateAddress(user, updateUserDto.address);
+    updateUserDto.address = resulAddres;
+    Object.assign(user, updateUserDto);
+    await user.save();
+    return user;
+  }
+
+  async remove(id: Types.ObjectId, res: any) {
+    const user = await this.userModel.findByIdAndDelete(id);
+    res.send({ message: "User deleted succesfully" });
   }
 }

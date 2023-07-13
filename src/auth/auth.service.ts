@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
@@ -22,6 +27,9 @@ export class AuthService {
     const user = await this.userService.isEmailExist(loginDto.email);
 
     if (user && (await bcrypt.compare(loginDto.password, user.password))) {
+      if (!user.isVerified) {
+        throw new BadRequestException("Please verify you email");
+      }
       const payload = {
         _id: user._id.toString(),
         isAdmin: user.isAdmin,

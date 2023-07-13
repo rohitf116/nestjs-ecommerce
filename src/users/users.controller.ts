@@ -49,10 +49,11 @@ export class UsersController {
   @Public()
   verifyEmail(
     @Query("email") email: string,
-    @Body() verifyEmailDto: VerifyEmailDto
+    @Body() verifyEmailDto: VerifyEmailDto,
+    @Res() res: any
   ) {
     console.log(email);
-    return this.usersService.verifyEmailOtp(email, verifyEmailDto.otp);
+    return this.usersService.verifyEmailOtp(email, verifyEmailDto.otp, res);
   }
 
   @Post("/signin")
@@ -60,6 +61,14 @@ export class UsersController {
   login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.signin(loginDto, res);
   }
+
+  @Post("/resend")
+  @Public()
+  resendOtp(@Body() body: any, @Res() res: any) {
+    return this.usersService.resendOtp(body.email, res);
+  }
+
+  //resendOtp
   //
   //
 
@@ -79,12 +88,14 @@ export class UsersController {
   @Patch("")
   update(@Req() req: any, @Body() updateUserDto: UpdateUserDto) {
     const id = req.user._id;
+    console.log(id);
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.usersService.remove(+id);
+  @Delete("")
+  remove(@Req() req: any, @Res() res: any) {
+    const id = req?.user?._id;
+    return this.usersService.remove(id, res);
   }
 }
 

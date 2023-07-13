@@ -20,6 +20,11 @@ export class EmailService {
     const text = REGISTRATION_TEXT(otp);
     await this.sendEmail(to, subject, text);
   }
+  async resendOtpMail(to: string, otp: number) {
+    const subject = OTP_ON_REGISTRATION;
+    const text = REGISTRATION_TEXT(otp);
+    await this.sendEmail(to, subject, text);
+  }
 
   verifyEmailWithOtp(otp: number, user: User): boolean {
     if (user.otp.expiry < new Date()) {

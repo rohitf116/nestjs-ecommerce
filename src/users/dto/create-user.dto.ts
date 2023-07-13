@@ -7,7 +7,12 @@ import {
   MinLength,
   MaxLength,
   IsAlpha,
+  IsOptional,
+  Matches,
+  Min,
+  Max,
 } from "class-validator";
+import { UpdateAddressDto } from "./address-update.dto";
 
 export class CreateUserDto {
   @IsString()
@@ -26,6 +31,8 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsNumber()
+  @Min(6000000000)
+  @Max(9999999999)
   phone: number;
 
   @IsString()
