@@ -56,12 +56,14 @@ export class UsersService {
   }
 
   async isEmailExist(email: string) {
-    const user = await this.userModel.findOne({ "email.value": email });
+    const user = await this.userModel.findOne({ email });
     return user;
   }
   //
   async verifyEmailOtp(email: string, otp: number) {
+    console.log(email);
     const user = await this.isEmailExist(email);
+    console.log(user, "iiii");
     if (!user) {
       throw new NotFoundException("User not found");
     }
@@ -72,7 +74,7 @@ export class UsersService {
     const newUser = this.resetOtpToNull(user);
     Object.assign(user, newUser);
     await user.save();
-    return "email verified successfully";
+    return { message: "email verified successfully" };
   }
 
   resetOtpToNull(user: User) {
@@ -87,7 +89,7 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string) {
-    const user = await this.userModel.findOne({ "email.value": email }).exec();
+    const user = await this.userModel.findOne({ email: email }).exec();
     if (user) {
       throw new ConflictException("Email already in use");
     }
@@ -95,16 +97,18 @@ export class UsersService {
   }
 
   async findOneByPhone(phone: number) {
-    const user = await this.userModel.findOne({ "phone.value": phone }).exec();
+    const user = await this.userModel.findOne({ phone: phone }).exec();
     if (user) {
       throw new ConflictException("Phone already in use");
     }
     return true;
   }
 
-  findOne(id: string) {}
+  findOne(id: Types.ObjectId) {
+    return this.userModel.findOne({ _id: id }).exec();
+  }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(id: Types.ObjectId, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 

@@ -11,6 +11,8 @@ import { Request } from "express";
 import { Reflector } from "@nestjs/core";
 import { IS_PUBLIC_KEY } from "./public";
 import { UsersService } from "src/users/users.service";
+import { JWTPayload } from "src/interface/jwt.interface";
+import { User } from "src/users/model/user.model";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -25,13 +27,15 @@ export class AuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    const request = context.switchToHttp().getRequest();
-    const token = request.cookies?.["accessToken"] || null;
-    console.log(request);
     if (isPublic) {
       // 💡 See this condition
       return true;
     }
+
+    const request = context.switchToHttp().getRequest();
+    const token = request.cookies["accessToken"] || null;
+    console.log(token, "toekn");
+
     // const request = context.switchToHttp().getRequest();
     // const token = request.cookies?.["accessToken"] || null;
     // console.log(request);
@@ -46,6 +50,18 @@ export class AuthGuard implements CanActivate {
       request["user"] = payload;
     } catch {
       throw new UnauthorizedException();
+    }
+
+    try {
+      console.log(request.user);
+      const user: any = await this.userService.findOne(request.user._id);
+      if (!user) {
+        throw new NotFoundException();
+      }
+      console.log(user);
+      request["user"] = user;
+    } catch (error) {
+      throw new NotFoundException();
     }
     return true;
   }

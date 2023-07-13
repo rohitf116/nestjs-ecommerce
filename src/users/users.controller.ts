@@ -24,6 +24,9 @@ import { AuthService } from "src/auth/auth.service";
 import { UserDto } from "./dto/user.dto";
 import { AuthGuard } from "src/auth/auth.guard";
 import { Public } from "src/auth/public";
+import { ValidateObjectId } from "src/decorators/validobjectId.decortor";
+import { Types } from "mongoose";
+import { cookiesFromRequest } from "src/decorators/cookies.decorator";
 
 @Serialize(UserDto)
 @Controller("users")
@@ -42,6 +45,16 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Patch("/verify")
+  @Public()
+  verifyEmail(
+    @Query("email") email: string,
+    @Body() verifyEmailDto: VerifyEmailDto
+  ) {
+    console.log(email);
+    return this.usersService.verifyEmailOtp(email, verifyEmailDto.otp);
+  }
+
   @Post("/signin")
   @Public()
   login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
@@ -50,30 +63,24 @@ export class UsersController {
   //
   //
 
-  @Get()
-  @Public()
-  findAll(@Req() req: any) {
-    const token = req.user;
-    console.log(token);
-    return token;
-  }
-  @Patch()
-  verifyEmail(
-    @Query("email") email: string,
-    @Body() verifyEmailDto: VerifyEmailDto
-  ) {
-    return this.usersService.verifyEmailOtp(email, verifyEmailDto.otp);
-  }
-
-  @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.usersService.findOne(id);
-  }
-
-  // @Patch(":id")
-  // update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
+  // @Get()
+  // findAll(@Req() req: any) {
+  //   const token = req.user;
+  //   console.log(token);
+  //   console.log(req);
+  //   return token;
   // }
+
+  @Get("")
+  findOne(@Req() req: any) {
+    return req.user;
+  }
+
+  @Patch("")
+  update(@Req() req: any, @Body() updateUserDto: UpdateUserDto) {
+    const id = req.user._id;
+    return this.usersService.update(id, updateUserDto);
+  }
 
   @Delete(":id")
   remove(@Param("id") id: string) {
