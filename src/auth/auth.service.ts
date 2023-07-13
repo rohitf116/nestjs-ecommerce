@@ -28,9 +28,8 @@ export class AuthService {
         tokenVersion: user.tokenVersion,
       };
       const token = await this.jwtService.signAsync(payload);
-      console.log(token);
-      res.cookie("accessToken", token, { httpOnly: true }).json("Hii");
-      return { accessToken: token };
+      res.cookie("accessToken", token, { httpOnly: true });
+      return user;
     }
 
     throw new UnauthorizedException("Check your credentials");

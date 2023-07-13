@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 import { Model, Connection, Types } from "mongoose";
@@ -10,10 +11,7 @@ import { InjectModel, InjectConnection } from "@nestjs/mongoose";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { User } from "./model/user.model";
-import {
-  CommunicationDtoEmail,
-  CommunicationDtoPhone,
-} from "./dto/communication.dto";
+
 import { OtpService } from "./otp.service";
 import { OTP } from "./interface/otp.interface";
 import { EmailService } from "src/email/email.service";
@@ -43,10 +41,12 @@ export class UsersService {
     const user: User = await this.isEmailExist(loginDto.email);
     if (user) {
       const isMatch = await bcrypt.compare(loginDto.password, user.password);
+      console.log(user);
       if (isMatch) {
         return user;
       }
     }
+    throw new UnauthorizedException("Unauthenticated acces");
   }
   otpEmailGenerate() {
     const emailOtp = this.otpServise.generateOtp();

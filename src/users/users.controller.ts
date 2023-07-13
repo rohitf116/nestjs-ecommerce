@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   Res,
+  UseGuards,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -20,9 +21,11 @@ import { VerifyEmailDto } from "src/email/dto/verifyEmail.dto";
 import { LoginDto } from "./dto/login.dto";
 import { AuthService } from "src/auth/auth.service";
 import { UserDto } from "./dto/user.dto";
+import { AuthGuard } from "src/auth/auth.guard";
 
 @Serialize(UserDto)
 @Controller("users")
+@UseGuards(AuthGuard)
 // @UseInterceptor(new SerializeInterceptor())
 export class UsersController {
   constructor(
@@ -36,12 +39,12 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Post("/login")
-  login(@Body() loginDto: LoginDto, @Res() res: Response) {
+  @Post("/signin")
+  login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.signin(loginDto, res);
   }
   //
-  //login
+  //
 
   @Get()
   findAll() {
