@@ -9,6 +9,7 @@ import {
   Query,
   Res,
   UseGuards,
+  Req,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -22,6 +23,7 @@ import { LoginDto } from "./dto/login.dto";
 import { AuthService } from "src/auth/auth.service";
 import { UserDto } from "./dto/user.dto";
 import { AuthGuard } from "src/auth/auth.guard";
+import { Public } from "src/auth/public";
 
 @Serialize(UserDto)
 @Controller("users")
@@ -34,12 +36,14 @@ export class UsersController {
   ) {}
 
   @Post("/signup")
+  @Public()
   create(@Body() createUserDto: CreateUserDto) {
     console.log(CreateUserDto);
     return this.usersService.create(createUserDto);
   }
 
   @Post("/signin")
+  @Public()
   login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.signin(loginDto, res);
   }
@@ -47,8 +51,11 @@ export class UsersController {
   //
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Public()
+  findAll(@Req() req: any) {
+    const token = req.user;
+    console.log(token);
+    return token;
   }
   @Patch()
   verifyEmail(
