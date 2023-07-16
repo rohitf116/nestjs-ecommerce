@@ -14,25 +14,31 @@ export const ExcludeSerialize = createParamDecorator(
     return;
   }
 );
-export function Serialize(dto: any) {
-  return UseInterceptors(new SerializeInterceptor(dto));
+export function Serialize(dto: any, message: string) {
+  return UseInterceptors(new SerializeInterceptor(dto, message));
 }
 
 export class SerializeInterceptor implements NestInterceptor {
-  constructor(private dto: any) {}
+  constructor(private dto: any, private message: string) {}
+
   intercept(
     context: ExecutionContext,
     next: CallHandler<any>
   ): Observable<any> | Promise<Observable<any>> {
-    //befor a reuest handlet
-
     return next.handle().pipe(
       map((data: any) => {
-        //run something befor sending response
-        console.log(data);
-        return plainToInstance(this.dto, data, {
-          excludeExtraneousValues: true,
-        });
+        const response: any = {
+          message: this.message,
+          data: plainToInstance(this.dto, data, {
+            excludeExtraneousValues: true,
+          }),
+        };
+
+        if (Array.isArray(data)) {
+          response.items = data.length;
+        }
+
+        return response;
       })
     );
   }

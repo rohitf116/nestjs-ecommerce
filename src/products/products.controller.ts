@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
+  Query,
 } from "@nestjs/common";
 import { ProductsService } from "./products.service";
 import { CreateProductDto } from "./dto/create-product.dto";
@@ -13,35 +15,44 @@ import { UpdateProductDto } from "./dto/update-product.dto";
 import { Public } from "src/auth/public";
 import { Serialize } from "src/interceptors/serialize.interceptor";
 import { ProductDto } from "./dto/product.dto";
+import { Types } from "mongoose";
+import { ValidateObjectId } from "src/decorators/validobjectId.decortor";
+import { AllProductDto } from "./dto/allProduct.dto";
 
 @Controller("products")
-@Serialize(ProductDto)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
   @Public()
+  @Serialize(ProductDto, "Product created succesfully")
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  @Serialize(ProductDto, "Products fetched succesfully")
+  findAll(@Query() query: AllProductDto) {
+    return this.productsService.findAll(query);
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.productsService.findOne(+id);
+  @Serialize(ProductDto, "Product fetched succesfully")
+  findOne(@ValidateObjectId() id: Types.ObjectId) {
+    return this.productsService.findOne(id);
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
+  @Serialize(ProductDto, "Products updated succesfully")
+  update(
+    @ValidateObjectId() id: Types.ObjectId,
+    @Body() updateProductDto: UpdateProductDto
+  ) {
+    return this.productsService.update(id, updateProductDto);
   }
 
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.productsService.remove(+id);
+  remove(@ValidateObjectId() id: Types.ObjectId, @Res() res: any) {
+    return this.productsService.remove(id, res);
   }
 }

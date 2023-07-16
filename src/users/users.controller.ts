@@ -28,7 +28,6 @@ import { ValidateObjectId } from "src/decorators/validobjectId.decortor";
 import { Types } from "mongoose";
 import { cookiesFromRequest } from "src/decorators/cookies.decorator";
 
-@Serialize(UserDto)
 @Controller("users")
 @UseGuards(AuthGuard)
 // @UseInterceptor(new SerializeInterceptor())
@@ -40,6 +39,7 @@ export class UsersController {
 
   @Post("/signup")
   @Public()
+  @Serialize(UserDto, "user created succesfully")
   create(@Body() createUserDto: CreateUserDto) {
     console.log(CreateUserDto);
     return this.usersService.create(createUserDto);
@@ -58,6 +58,7 @@ export class UsersController {
 
   @Post("/signin")
   @Public()
+  @Serialize(UserDto, "user logged in succesfully")
   login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.signin(loginDto, res);
   }
@@ -86,6 +87,7 @@ export class UsersController {
   }
 
   @Patch("")
+  @Serialize(UserDto, "user updated succesfully")
   update(@Req() req: any, @Body() updateUserDto: UpdateUserDto) {
     const id = req.user._id;
     console.log(id);

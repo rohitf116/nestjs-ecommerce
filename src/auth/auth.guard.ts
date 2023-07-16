@@ -34,11 +34,6 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const token = request.cookies["accessToken"] || null;
-    console.log(token, "toekn");
-
-    // const request = context.switchToHttp().getRequest();
-    // const token = request.cookies?.["accessToken"] || null;
-    // console.log(request);
 
     if (!token) {
       throw new UnauthorizedException();
@@ -47,13 +42,13 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: "Test123@334",
       });
+
       request["user"] = payload;
     } catch {
       throw new UnauthorizedException();
     }
 
     try {
-      console.log(request.user);
       const user: any = await this.userService.findOne(request.user._id);
       if (!user) {
         throw new NotFoundException();

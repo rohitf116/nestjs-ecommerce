@@ -1,6 +1,11 @@
 import { Expose, Transform, plainToClass } from "class-transformer";
+import { Types } from "mongoose";
 
 export class ProductDto {
+  @Expose()
+  @Transform((params) => params?.obj?._id?.toString())
+  _id: Types.ObjectId;
+
   @Expose()
   title: string;
 
